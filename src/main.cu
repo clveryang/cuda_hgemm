@@ -64,10 +64,6 @@ int main(int argc, char *argv[]) {
     HLOG("%d multiprocessors, %d CUDA cores/MP: %d CUDA cores", dev_prop.multiProcessorCount,
          convert_SM_to_cores(dev_prop.major, dev_prop.minor),
          convert_SM_to_cores(dev_prop.major, dev_prop.minor) * dev_prop.multiProcessorCount);
-    HLOG("GPU max clock rate: %.0f MHz (%0.2f GHz)", static_cast<double>(dev_prop.clockRate) * 1e-3,
-         static_cast<double>(dev_prop.clockRate) * 1e-6);
-    HLOG("Memory clock rate: %.0f MHz (%0.2f GHz)", static_cast<double>(dev_prop.memoryClockRate) * 1e-3,
-         static_cast<double>(dev_prop.memoryClockRate) * 1e-6);
     HLOG("Memory bus width: %d-bit", dev_prop.memoryBusWidth);
     HLOG("Total amount of global memory: %.0f MBytes (%zu Bytes)",
          static_cast<double>(dev_prop.totalGlobalMem) / 1048576, dev_prop.totalGlobalMem);
