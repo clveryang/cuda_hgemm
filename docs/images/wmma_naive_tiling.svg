@@ -1,0 +1,51 @@
+<svg width="680" height="500" viewBox="0 0 680 500" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>WMMA naive 分块示意</title>
+  <desc>C 矩阵被切成 16x16 瓦片，一个 warp 负责一块 C 瓦片，沿 K 方向循环读取 A 的行条带和 B 的列条带并累加</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#656d76" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <style>
+      text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #1f2328; }
+      .th { font-size: 14px; font-weight: 500; }
+      .ts { font-size: 12px; fill: #656d76; }
+      .grid { stroke: #d0d7de; stroke-width: 0.5; }
+      .mat { fill: #f6f8fa; stroke: #8c959f; }
+    </style>
+  </defs>
+
+  <text class="th" x="40" y="270">A (M×K) 行主序</text>
+  <rect class="mat" x="40" y="280" width="160" height="160"/>
+  <g fill="#fff8c5" stroke="#d4a72c">
+    <rect x="40" y="320" width="40" height="40"/><rect x="80" y="320" width="40" height="40"/>
+    <rect x="120" y="320" width="40" height="40"/><rect x="160" y="320" width="40" height="40"/>
+  </g>
+  <line class="grid" x1="80" y1="280" x2="80" y2="440"/><line class="grid" x1="120" y1="280" x2="120" y2="440"/><line class="grid" x1="160" y1="280" x2="160" y2="440"/>
+  <line class="grid" x1="40" y1="360" x2="200" y2="360"/><line class="grid" x1="40" y1="400" x2="200" y2="400"/>
+  <text class="ts" x="52" y="345">i=0</text><text class="ts" x="92" y="345">i=1</text><text class="ts" x="132" y="345">i=2</text><text class="ts" x="172" y="345">i=3</text>
+
+  <text class="th" x="300" y="40">B (K×N) 列主序</text>
+  <rect class="mat" x="300" y="50" width="240" height="160"/>
+  <g fill="#ddf4ff" stroke="#54aeff">
+    <rect x="380" y="50" width="40" height="40"/><rect x="380" y="90" width="40" height="40"/>
+    <rect x="380" y="130" width="40" height="40"/><rect x="380" y="170" width="40" height="40"/>
+  </g>
+  <line class="grid" x1="340" y1="50" x2="340" y2="210"/><line class="grid" x1="460" y1="50" x2="460" y2="210"/><line class="grid" x1="500" y1="50" x2="500" y2="210"/>
+  <line class="grid" x1="300" y1="90" x2="540" y2="90"/><line class="grid" x1="300" y1="130" x2="540" y2="130"/><line class="grid" x1="300" y1="170" x2="540" y2="170"/>
+  <text class="ts" x="392" y="75">i=0</text><text class="ts" x="392" y="115">i=1</text><text class="ts" x="392" y="155">i=2</text><text class="ts" x="392" y="195">i=3</text>
+
+  <text class="th" x="300" y="270">C (M×N)</text>
+  <rect class="mat" x="300" y="280" width="240" height="160"/>
+  <rect x="380" y="320" width="40" height="40" fill="#dafbe1" stroke="#4ac26b"/>
+  <line class="grid" x1="340" y1="280" x2="340" y2="440"/><line class="grid" x1="380" y1="280" x2="380" y2="440"/><line class="grid" x1="420" y1="280" x2="420" y2="440"/><line class="grid" x1="460" y1="280" x2="460" y2="440"/><line class="grid" x1="500" y1="280" x2="500" y2="440"/>
+  <line class="grid" x1="300" y1="320" x2="540" y2="320"/><line class="grid" x1="300" y1="360" x2="540" y2="360"/><line class="grid" x1="300" y1="400" x2="540" y2="400"/>
+
+  <line x1="205" y1="340" x2="375" y2="340" stroke="#656d76" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text class="ts" x="230" y="332">load_matrix_sync</text>
+  <line x1="400" y1="215" x2="400" y2="315" stroke="#656d76" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text class="ts" x="410" y="250">load_matrix_sync</text>
+
+  <text class="th" x="560" y="335">1 warp =</text>
+  <text class="th" x="560" y="353">1 块 16×16 瓦片</text>
+  <text class="ts" x="40" y="470">warp 坐标：blockIdx.y 选行、blockIdx.x 选列；沿 i=0..K/16-1 循环，mma_sync 逐块累加</text>
+</svg>
