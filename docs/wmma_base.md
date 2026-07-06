@@ -14,6 +14,66 @@ naive 的病根：C 同一行的每个 warp 都独立从 global memory 读同一
 
 ![wmma_base 三级分块](images/wmma_base_tiling.svg)
 
+## grid 与 block 怎么划
+
+启动代码（第 197-198 行）：
+
+```cpp
+dim3 block(THREADS_PER_BLOCK);   // block 是一维的：256 个线程
+dim3 grid(BLOCK_STRIDE, div_ceil(M, BLOCK_ROWS), div_ceil(N, BLOCK_COLS * BLOCK_STRIDE));
+//        = grid(16,    M/256,                   N/2048)
+```
+
+直觉上你会期待 `grid(N/128, M/256)`——C 有多少个 256×128 瓦片就开多少个 block。功能上确实如此，但作者把 N 方向拆成 `16 × N/2048` 两截（x 和 z 维度），**纯粹为了控制 block 的发射顺序**。
+
+kernel 里把硬件坐标翻译回逻辑瓦片坐标（第 53-55 行）：
+
+```cpp
+// M 方向第几个行块：z 为奇数时行序反转（蛇形）
+block_tile_i = (blockIdx.z % 2) ? ((gridDim.y - blockIdx.y - 1) * 16) : (blockIdx.y * 16);
+// N 方向第几个列块：z 和 x 合并回完整列号
+block_tile_j = (blockIdx.z * gridDim.x + blockIdx.x) * 8;
+```
+
+（单位是 16×16 小瓦片数，所以乘 16 和 8——一个 block 竖着盖 16 个、横着盖 8 个小瓦片。）
+
+代入 M=N=4096：`grid(16, 16, 2)`，共 512 个 block。GPU 发射 block 的顺序 x 最快、y 次之、z 最慢，于是：
+
+1. z=0：先横着铺 x=0..15（覆盖 2048 列宽），y 递增——在一条 2048 列宽的竖条纹里从上往下扫
+2. z=1：换右半边条纹，y 反向（蛇形），从下往上扫
+
+同一时刻在跑的 block 落在 C 的同一横排附近，读同一条 A 条带——第一个 block 把 A 读进 L2，其余 block 吃缓存；条纹换向时蛇形衔接，上一条纹末尾的 A 还热着就被接着用。这就是 README 里 "L2 Cache: swizzle" 的全部内容。注意硬件不保证 block 执行顺序，这只是统计上让时间相近的 block 数据相近。
+
+block 内部是纯一维 256 线程，自己切 warp：
+
+```cpp
+warp_id = threadIdx.x / 32;   // 0..7，按 4 行 2 列铺在 256×128 瓦片上
+lane_id = threadIdx.x % 32;   // 0..31，warp 内编号
+```
+
+完整坐标链：**(blockIdx.x,y,z) → 哪块 256×128 → warp_id → 哪块 64×64 → mma 循环的 (i,j) → 哪块 16×16 → lane_id → fragment 里的哪 8 个数**。
+
+## C_frag 是什么
+
+一句话：**C_frag 是这个 warp 的"结果账本"——它负责的 64×64 输出区域的累加值，全程住在寄存器里。**
+
+```cpp
+wmma::fragment<wmma::accumulator, 16, 16, 16, half> C_frag[4][4];
+```
+
+- 单个 `fragment<accumulator,...>` 对应一块 16×16 输出瓦片的 256 个累加值，摊在 warp 的 32 个线程的寄存器里，**每线程扛 8 个**。哪个线程扛哪 8 个是黑盒，所以不能 `C_frag[i][j][5]` 碰单个元素，只能整体填零、整体累加、整体写出。
+- 数组开成 `[4][4]`：warp 管 64×64 = 4×4 块瓦片，一块一本账。
+- 全 warp 合计 16 本账 × 每线程 8 个 = 每线程 128 个 half ≈ 64 个寄存器——寄存器压力的主要来源。
+
+关键是生命周期的对比：
+
+| | 创建 | 存活时间 | 死亡 |
+|---|---|---|---|
+| `A_frag` / `B_frag` | 每个 k_step 里 | 用一次就扔 | 循环体结束 |
+| `C_frag[4][4]` | kernel 开头填零 | **整个 K 循环** | 最后写回才落地 |
+
+A、B 像流水一样过境，C 钉在寄存器里不动——这种数据流叫 **C-stationary**（输出驻留），是几乎所有高性能 GEMM 的共同选择：C 的每个元素要被累加 K 次，把被写最多次的数据放在最快的存储（寄存器）里，只在最后一刻才碰一次显存。
+
 ## 宏定义解码（第 13-43 行）
 
 开头一堆宏就是三级分块的参数表，抓住三行：
