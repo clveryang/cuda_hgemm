@@ -12,49 +12,11 @@
 
 ![WMMA naive 分块示意](images/wmma_naive_tiling.svg)
 
-## 预备知识：行主序、列主序与本仓库的布局约定
+## 预备知识：内存布局约定
 
-先澄清一个容易误解的点：**布局不是数据的属性，而是解读内存的公式**。[Matrix 类](../src/common/matrix.h) 初始化时只是开一块 `row*col` 的连续内存填随机数，没有任何布局概念：
+本仓库约定 **A 按行主序 (M×K)、B 按列主序 (K×N)、C 按行主序 (M×N)** 解读，leading dimension 分别为 K、K、N。这个约定由基准 cuBLAS 调用定下，所有 kernel 与之保持一致。
 
-```cpp
-m_host_ptr = new half[m_elem_num];          // 一维连续内存
-for (size_t i = 0; i < m_elem_num; ++i) {
-    m_host_ptr[i] = __float2half(uniform(engine));   // 顺序填随机数
-}
-```
-
-- 行主序：`idx = r * ld + c`（同一行元素连续）
-- 列主序：`idx = c * ld + r`（同一列元素连续）
-
-同一块内存换一条公式解读，得到的就是转置后的矩阵——所以"B 是列主序的 K×N"等价于"B 是行主序的 N×K"。
-
-**这个仓库的布局约定由基准 cuBLAS 调用定下**（[tester.h](../src/common/tester.h)）：
-
-```cpp
-cublasGemmEx(handle, CUBLAS_OP_T, CUBLAS_OP_N, N, M, K, &alpha,
-             B, CUDA_R_16F, K,    // B 的 leading dim 是 K → 列主序 K×N
-             A, CUDA_R_16F, K,    // A 的 leading dim 是 K → 行主序 M×K
-             &beta, C, CUDA_R_16F, N, ...);
-```
-
-所有 kernel 与 cuBLAS 采用同一套解读公式，正确性校验才能对得上。读 kernel 代码时可以用**下标公式反推布局**：
-
-```cpp
-A[m * K + k]   // 行号 m 乘跨度 → 行主序，ld = K
-B[n * K + k]   // 列号 n 乘跨度 → 列主序，ld = K
-C[m * N + n]   // 行号 m 乘跨度 → 行主序，ld = N
-```
-
-**为什么故意选这个组合（BLAS 术语叫 TN 布局）？关键在累加方向 K。**
-
-GEMM 的内层循环沿 K 方向推进：A 取一行（横着走 K 个），B 取一列（竖着走 K 个）。
-
-- A 行主序 → 沿 K 走一行，内存连续
-- B 列主序 → 沿 K 走一列，内存连续
-
-两边加载都顺着连续内存走，warp 的 32 个线程访问相邻地址，满足合并访存（coalescing）；后续 MMA 路径的 `ldmatrix` 指令也正好吃这种"沿 K 连续"的布局。反过来，如果 B 用行主序，沿 K 方向每读一个元素都要跨 N 个元素跳跃，带宽利用率会大幅下降。
-
-实际工程含义：如果你的真实数据里 B 是行主序的，要么先做一次转置，要么改 kernel 的加载逻辑——这也是 cuBLAS 接口要求显式声明每个矩阵的 op（N/T）和 leading dimension 的原因。
+如果你对"布局是解读公式而非数据属性"、"为什么 A 和 B 混用两种布局结果还是对的"、"为什么故意选这个组合"有疑问，先读 [行主序与列主序：读懂 GEMM 代码的内存布局基础](memory_layout.md)，再回来继续。
 
 ## 逐行拆解
 

@@ -1,0 +1,44 @@
+<svg width="680" height="410" viewBox="0 0 680 410" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>行主序与列主序</title>
+  <desc>同一段一维内存，用行主序公式解释时前四个元素排成一行，用列主序公式解释时排成一列</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#656d76" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <style>
+      text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #1f2328; }
+      .th { font-size: 14px; font-weight: 500; }
+      .t { font-size: 14px; }
+      .ts { font-size: 12px; fill: #656d76; }
+      .cell { fill: #f6f8fa; stroke: #8c959f; }
+      .hot { fill: #fff8c5; stroke: #d4a72c; }
+    </style>
+  </defs>
+
+  <text class="th" x="100" y="50">内存里的真实样子：一条一维数组</text>
+  <rect class="hot" x="100" y="60" width="40" height="40"/><rect class="hot" x="140" y="60" width="40" height="40"/><rect class="hot" x="180" y="60" width="40" height="40"/><rect class="hot" x="220" y="60" width="40" height="40"/>
+  <rect class="cell" x="260" y="60" width="40" height="40"/><rect class="cell" x="300" y="60" width="40" height="40"/><rect class="cell" x="340" y="60" width="40" height="40"/><rect class="cell" x="380" y="60" width="40" height="40"/><rect class="cell" x="420" y="60" width="40" height="40"/><rect class="cell" x="460" y="60" width="40" height="40"/><rect class="cell" x="500" y="60" width="40" height="40"/><rect class="cell" x="540" y="60" width="40" height="40"/>
+  <text class="t" x="115" y="85">0</text><text class="t" x="155" y="85">1</text><text class="t" x="195" y="85">2</text><text class="t" x="235" y="85">3</text><text class="t" x="275" y="85">4</text><text class="t" x="315" y="85">5</text><text class="t" x="355" y="85">6</text><text class="t" x="395" y="85">7</text><text class="t" x="435" y="85">8</text><text class="t" x="475" y="85">9</text><text class="t" x="510" y="85">10</text><text class="t" x="550" y="85">11</text>
+
+  <line x1="200" y1="115" x2="160" y2="185" stroke="#656d76" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="440" y1="115" x2="490" y2="185" stroke="#656d76" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <text class="th" x="80" y="215">行主序读法 idx = r×4 + c</text>
+  <rect class="hot" x="80" y="225" width="40" height="40"/><rect class="hot" x="120" y="225" width="40" height="40"/><rect class="hot" x="160" y="225" width="40" height="40"/><rect class="hot" x="200" y="225" width="40" height="40"/>
+  <rect class="cell" x="80" y="265" width="160" height="40"/><rect class="cell" x="80" y="305" width="160" height="40"/>
+  <line x1="120" y1="265" x2="120" y2="345" stroke="#d0d7de" stroke-width="0.5"/><line x1="160" y1="265" x2="160" y2="345" stroke="#d0d7de" stroke-width="0.5"/><line x1="200" y1="265" x2="200" y2="345" stroke="#d0d7de" stroke-width="0.5"/>
+  <text class="t" x="95" y="250">0</text><text class="t" x="135" y="250">1</text><text class="t" x="175" y="250">2</text><text class="t" x="215" y="250">3</text>
+  <text class="t" x="95" y="290">4</text><text class="t" x="135" y="290">5</text><text class="t" x="175" y="290">6</text><text class="t" x="215" y="290">7</text>
+  <text class="t" x="95" y="330">8</text><text class="t" x="135" y="330">9</text><text class="t" x="170" y="330">10</text><text class="t" x="210" y="330">11</text>
+
+  <text class="th" x="420" y="215">列主序读法 idx = c×3 + r</text>
+  <rect class="hot" x="420" y="225" width="40" height="40"/><rect class="hot" x="420" y="265" width="40" height="40"/><rect class="hot" x="420" y="305" width="40" height="40"/><rect class="hot" x="460" y="225" width="40" height="40"/>
+  <rect class="cell" x="460" y="265" width="40" height="80"/><rect class="cell" x="500" y="225" width="40" height="120"/><rect class="cell" x="540" y="225" width="40" height="120"/>
+  <line x1="460" y1="305" x2="500" y2="305" stroke="#d0d7de" stroke-width="0.5"/><line x1="500" y1="265" x2="580" y2="265" stroke="#d0d7de" stroke-width="0.5"/><line x1="500" y1="305" x2="580" y2="305" stroke="#d0d7de" stroke-width="0.5"/>
+  <text class="t" x="435" y="250">0</text><text class="t" x="435" y="290">1</text><text class="t" x="435" y="330">2</text>
+  <text class="t" x="475" y="250">3</text><text class="t" x="475" y="290">4</text><text class="t" x="475" y="330">5</text>
+  <text class="t" x="515" y="250">6</text><text class="t" x="515" y="290">7</text><text class="t" x="515" y="330">8</text>
+  <text class="t" x="555" y="250">9</text><text class="t" x="550" y="290">10</text><text class="t" x="550" y="330">11</text>
+
+  <text class="ts" x="80" y="385">黄色 = 内存里连续的前 4 个元素：行主序下横着排，列主序下竖着排</text>
+</svg>
