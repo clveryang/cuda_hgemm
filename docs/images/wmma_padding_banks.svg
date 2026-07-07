@@ -1,0 +1,32 @@
+<svg width="680" height="400" viewBox="0 0 680 400" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>padding 消除 bank conflict</title>
+  <desc>无 padding 时每行起始 bank 只有 0 和 16 两种，同一列元素挤进 2 个 bank；每行加 8 个 half 后跨度变 20 bank，8 行的同列元素散开到 8 个不同 bank</desc>
+  <defs>
+    <style>
+      text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #1f2328; }
+      .th { font-size: 14px; font-weight: 500; }
+      .ts { font-size: 12px; fill: #656d76; }
+      .strip { fill: #f6f8fa; stroke: #8c959f; }
+      .bad { fill: #ffebe9; stroke: #ff8182; }
+      .good { fill: #dafbe1; stroke: #4ac26b; }
+    </style>
+  </defs>
+
+  <text class="th" x="60" y="50">无 padding：行距 64B = 16 bank</text>
+  <rect class="strip" x="60" y="70" width="256" height="18"/><rect class="strip" x="60" y="94" width="256" height="18"/><rect class="strip" x="60" y="118" width="256" height="18"/><rect class="strip" x="60" y="142" width="256" height="18"/><rect class="strip" x="60" y="166" width="256" height="18"/><rect class="strip" x="60" y="190" width="256" height="18"/><rect class="strip" x="60" y="214" width="256" height="18"/><rect class="strip" x="60" y="238" width="256" height="18"/>
+  <rect class="bad" x="60" y="70" width="8" height="18"/><rect class="bad" x="188" y="94" width="8" height="18"/><rect class="bad" x="60" y="118" width="8" height="18"/><rect class="bad" x="188" y="142" width="8" height="18"/><rect class="bad" x="60" y="166" width="8" height="18"/><rect class="bad" x="188" y="190" width="8" height="18"/><rect class="bad" x="60" y="214" width="8" height="18"/><rect class="bad" x="188" y="238" width="8" height="18"/>
+  <line x1="64" y1="70" x2="64" y2="256" stroke="#656d76" stroke-width="0.75" stroke-dasharray="3 3"/>
+  <line x1="192" y1="94" x2="192" y2="256" stroke="#656d76" stroke-width="0.75" stroke-dasharray="3 3"/>
+  <text class="ts" x="60" y="285">bank 0</text><text class="ts" x="170" y="285">bank 16</text>
+  <text class="ts" x="60" y="320">8 行的同列元素挤进 2 个 bank</text>
+  <text class="ts" x="60" y="337">→ 4~8 路冲突，串行排队</text>
+
+  <text class="th" x="380" y="50">padding +8：行距 80B = 20 bank</text>
+  <rect class="strip" x="380" y="70" width="256" height="18"/><rect class="strip" x="380" y="94" width="256" height="18"/><rect class="strip" x="380" y="118" width="256" height="18"/><rect class="strip" x="380" y="142" width="256" height="18"/><rect class="strip" x="380" y="166" width="256" height="18"/><rect class="strip" x="380" y="190" width="256" height="18"/><rect class="strip" x="380" y="214" width="256" height="18"/><rect class="strip" x="380" y="238" width="256" height="18"/>
+  <rect class="good" x="380" y="70" width="8" height="18"/><rect class="good" x="540" y="94" width="8" height="18"/><rect class="good" x="444" y="118" width="8" height="18"/><rect class="good" x="604" y="142" width="8" height="18"/><rect class="good" x="508" y="166" width="8" height="18"/><rect class="good" x="412" y="190" width="8" height="18"/><rect class="good" x="572" y="214" width="8" height="18"/><rect class="good" x="476" y="238" width="8" height="18"/>
+  <text class="ts" x="380" y="285">起始 bank：0, 20, 8, 28, 16, 4, 24, 12</text>
+  <text class="ts" x="380" y="320">同列元素散开到 8 个不同 bank</text>
+  <text class="ts" x="380" y="337">→ 并行服务，无排队</text>
+
+  <text class="ts" x="60" y="375">每行 = 32 个 bank 的条带（8px 一个 bank）；色块 = 该行第 0 列元素落进的 bank</text>
+</svg>
