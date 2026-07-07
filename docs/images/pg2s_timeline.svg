@@ -1,0 +1,41 @@
+<svg width="680" height="340" viewBox="0 0 680 340" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>pg2s 双缓冲时间线</title>
+  <desc>串行版本搬运和计算交替进行；双缓冲版本中拷贝引擎搬下一块的同时 Tensor Core 计算当前块，搬运时间被完全隐藏</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#656d76" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <style>
+      text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #1f2328; }
+      .th { font-size: 14px; font-weight: 500; }
+      .ts { font-size: 12px; fill: #57606a; }
+      .buf0 { fill: #fff8c5; stroke: #d4a72c; }
+      .buf1 { fill: #ddf4ff; stroke: #54aeff; }
+      .comp { fill: #dafbe1; stroke: #4ac26b; }
+    </style>
+  </defs>
+
+  <text class="th" x="40" y="45">wmma_async：串行</text>
+  <rect class="buf0" x="100" y="58" width="60" height="26"/><text class="ts" x="115" y="75">搬 0</text>
+  <rect class="comp" x="160" y="58" width="80" height="26"/><text class="ts" x="185" y="75">算 0</text>
+  <rect class="buf1" x="240" y="58" width="60" height="26"/><text class="ts" x="255" y="75">搬 1</text>
+  <rect class="comp" x="300" y="58" width="80" height="26"/><text class="ts" x="325" y="75">算 1</text>
+  <rect class="buf0" x="380" y="58" width="60" height="26"/><text class="ts" x="395" y="75">搬 2</text>
+  <rect class="comp" x="440" y="58" width="80" height="26"/><text class="ts" x="465" y="75">算 2</text>
+
+  <text class="th" x="40" y="135">pg2s：双缓冲重叠</text>
+  <text class="ts" x="28" y="165">拷贝引擎</text>
+  <rect class="buf0" x="100" y="148" width="60" height="26"/><text class="ts" x="104" y="165">搬0→buf0</text>
+  <rect class="buf1" x="160" y="148" width="60" height="26"/><text class="ts" x="164" y="165">搬1→buf1</text>
+  <rect class="buf0" x="240" y="148" width="60" height="26"/><text class="ts" x="244" y="165">搬2→buf0</text>
+  <text class="ts" x="28" y="205">Tensor Core</text>
+  <rect class="comp" x="160" y="188" width="80" height="26"/><text class="ts" x="170" y="205">算 0 读 buf0</text>
+  <rect class="comp" x="240" y="188" width="80" height="26"/><text class="ts" x="250" y="205">算 1 读 buf1</text>
+  <rect class="comp" x="320" y="188" width="80" height="26"/><text class="ts" x="330" y="205">算 2 读 buf0</text>
+
+  <line x1="400" y1="50" x2="400" y2="240" stroke="#656d76" stroke-width="0.75" stroke-dasharray="4 3"/>
+  <line x1="520" y1="50" x2="520" y2="240" stroke="#656d76" stroke-width="0.75" stroke-dasharray="4 3"/>
+  <line x1="400" y1="252" x2="520" y2="252" stroke="#656d76" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text class="ts" x="415" y="270">省下的时间</text>
+  <text class="ts" x="40" y="310">搬运和计算用的是不同硬件（拷贝引擎 / Tensor Core）——重叠不是超频，是让两台机器同时开工</text>
+</svg>
