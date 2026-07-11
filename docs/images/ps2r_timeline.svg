@@ -1,0 +1,37 @@
+<svg width="680" height="320" viewBox="0 0 680 320" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>ps2r 寄存器级流水线</title>
+  <desc>pg2s 中每个 k_step 先从 shared memory 取数再计算，串行；ps2r 用两套 fragment，取下一个 k_step 的数据与计算当前 k_step 重叠</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#656d76" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <style>
+      text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #1f2328; }
+      .th { font-size: 14px; font-weight: 500; }
+      .ts { font-size: 12px; fill: #57606a; }
+      .f0 { fill: #fff8c5; stroke: #d4a72c; }
+      .f1 { fill: #ddf4ff; stroke: #54aeff; }
+      .comp { fill: #dafbe1; stroke: #4ac26b; }
+    </style>
+  </defs>
+
+  <text class="th" x="40" y="45">pg2s：每个 k_step 内部仍是"先取后算"</text>
+  <rect class="f0" x="100" y="58" width="70" height="26"/><text class="ts" x="112" y="75">取 ks0</text>
+  <rect class="comp" x="170" y="58" width="90" height="26"/><text class="ts" x="192" y="75">算 ks0</text>
+  <rect class="f1" x="260" y="58" width="70" height="26"/><text class="ts" x="272" y="75">取 ks1</text>
+  <rect class="comp" x="330" y="58" width="90" height="26"/><text class="ts" x="352" y="75">算 ks1</text>
+
+  <text class="th" x="40" y="135">ps2r：fragment 双缓冲，取算重叠</text>
+  <text class="ts" x="22" y="165">LSU 取数</text>
+  <rect class="f0" x="100" y="148" width="70" height="26"/><text class="ts" x="104" y="165">取 ks0→f0</text>
+  <rect class="f1" x="170" y="148" width="70" height="26"/><text class="ts" x="174" y="165">取 ks1→f1</text>
+  <text class="ts" x="22" y="205">Tensor Core</text>
+  <rect class="comp" x="170" y="188" width="90" height="26"/><text class="ts" x="180" y="205">算 ks0 用 f0</text>
+  <rect class="comp" x="260" y="188" width="90" height="26"/><text class="ts" x="270" y="205">算 ks1 用 f1</text>
+
+  <line x1="350" y1="50" x2="350" y2="240" stroke="#656d76" stroke-width="0.75" stroke-dasharray="4 3"/>
+  <line x1="420" y1="50" x2="420" y2="240" stroke="#656d76" stroke-width="0.75" stroke-dasharray="4 3"/>
+  <line x1="350" y1="252" x2="420" y2="252" stroke="#656d76" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text class="ts" x="352" y="270">理论上省的时间</text>
+  <text class="ts" x="40" y="300">这层重叠没有拷贝引擎帮忙——靠 warp 调度器交错发射 LDS 和 HMMA 指令（指令级并行）</text>
+</svg>
